@@ -16,7 +16,7 @@ def get_sum_sublist(current_numbers, available_numbers, goal):
     return None
 
 def get_sum_list(nums, goal):
-    filtered_nums = [num for num in nums if num <= goal]
+    filtered_nums = [num for num in nums if num <= goal and num != 0]
     return get_sum_sublist([], filtered_nums, goal)
-        
+
 print(get_sum_list(nums, goal))
