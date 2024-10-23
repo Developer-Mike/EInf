@@ -1,5 +1,6 @@
 # Run: `python ./maximize-the-root/main.py < ./maximize-the-root/input.txt`
 
+# O(n) time complexity
 def get_parent_children_map(vertices_count, vertices_parents):
     parent_child_map = {}
 
@@ -12,6 +13,7 @@ def get_parent_children_map(vertices_count, vertices_parents):
 
     return parent_child_map
 
+# O(n) time complexity
 def depth_sorted_vertices(parent_children_map):
     depth_vertices = []
     open_vertices = [1]
@@ -23,36 +25,49 @@ def depth_sorted_vertices(parent_children_map):
         open_vertices = [child for parent in open_vertices if parent in parent_children_map for child in parent_children_map.get(parent, [])]
         depth += 1
 
-    return depth_vertices, depth
+    return depth_vertices
+
+# O(n) time complexity
+def get_child_values(vertices, vertices_parents, vertices_values):
+    parents_children_values_map = {}
+
+    for vertex in vertices:
+        parent_vertex_index = vertices_parents[vertex - 2]
+        vertex_value = vertices_values[vertex - 1]
+
+        if parent_vertex_index not in parents_children_values_map:
+            parents_children_values_map[parent_vertex_index] = []
+
+        parents_children_values_map[parent_vertex_index].append(vertex_value)
+    
+    return parents_children_values_map
+
+def get_new_vertex_value(parent_vertex_value, children_vertices_values, is_root):
+    min_children_value = min(children_vertices_values)
+
+    # Transfer all the value to the root
+    if is_root: return parent_vertex_value + min_children_value
+    
+    return (parent_vertex_value + min_children_value) // 2
 
 def maximize_root(vertices_count, vertices_values, vertices_parents):
     parent_children_map = get_parent_children_map(vertices_count, vertices_parents)
-    depth_vertices, max_depth = depth_sorted_vertices(parent_children_map)
+    vertices_by_depth = depth_sorted_vertices(parent_children_map)
 
-    # Analyze the vertices from the bottom up (excluding the root)
-    for depth in range(max_depth - 1, 0, -1):
-        vertices_of_depth = depth_vertices[depth]
-        parents_children_values_map = {}
-
-        # List all the children values for each parent
-        for vertex in vertices_of_depth:
-            parent_vertex = vertices_parents[vertex - 2]
-            vertex_value = vertices_values[vertex - 1]
-
-            if parent_vertex not in parents_children_values_map:
-                parents_children_values_map[parent_vertex] = []
-
-            parents_children_values_map[parent_vertex].append(vertex_value)
+    # Loop through the vertices from the bottom up (excluding the root)
+    for depth in range(len(vertices_by_depth) - 1, 0, -1):
+        vertices_of_depth = vertices_by_depth[depth]
+        parents_children_values_map = get_child_values(vertices_of_depth, vertices_parents, vertices_values)
 
         for parent_vertex in parents_children_values_map:
             children_vertices_values = parents_children_values_map[parent_vertex]
-
             parent_vertex_value = vertices_values[parent_vertex - 1]
-            min_children_value = min(children_vertices_values)
 
-            # Average value if not the root
-            if parent_vertex != 1: vertices_values[parent_vertex - 1] = (parent_vertex_value + min_children_value) // 2
-            else: vertices_values[parent_vertex - 1] = parent_vertex_value + min_children_value
+            vertices_values[parent_vertex - 1] = get_new_vertex_value(
+                parent_vertex_value, 
+                children_vertices_values, 
+                parent_vertex == 1
+            )
 
     return vertices_values[0]
 
