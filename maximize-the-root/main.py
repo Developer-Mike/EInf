@@ -1,4 +1,6 @@
 # Run: `python ./maximize-the-root/main.py < ./maximize-the-root/input.txt`
+# Codeforces: https://codeforces.com/problemset/problem/1997/D
+# Time complexity: O(n) where n is the number of vertices
 
 # O(n) time complexity
 def get_parent_children_map(vertices_count, vertices_parents):
@@ -22,7 +24,11 @@ def depth_sorted_vertices(parent_children_map):
     while len(open_vertices) > 0:
         depth_vertices.append(open_vertices.copy())
 
-        open_vertices = [child for parent in open_vertices if parent in parent_children_map for child in parent_children_map.get(parent, [])]
+        open_vertices = [
+            child
+            for parent in open_vertices if parent in parent_children_map 
+            for child in parent_children_map[parent]
+        ]
         depth += 1
 
     return depth_vertices
@@ -48,7 +54,12 @@ def get_new_vertex_value(parent_vertex_value, children_vertices_values, is_root)
     # Transfer all the value to the root
     if is_root: return parent_vertex_value + min_children_value
     
-    return (parent_vertex_value + min_children_value) // 2
+    average_value = (parent_vertex_value + min_children_value) // 2
+
+    # Children values cannot increase and thus limit the parent value
+    if min_children_value < average_value: return min_children_value
+
+    return average_value
 
 def maximize_root(vertices_count, vertices_values, vertices_parents):
     parent_children_map = get_parent_children_map(vertices_count, vertices_parents)
@@ -73,7 +84,7 @@ def maximize_root(vertices_count, vertices_values, vertices_parents):
 
 ########## TESTS ##########
 
-import sys
+import sys, time
 solutions = []
 
 cases_count = int(sys.stdin.readline())
@@ -86,7 +97,11 @@ for _ in range(cases_count):
     print("Vertices values:", vertices_values)
     print("Vertices parents:", vertices_parents)
 
+    start_time = time.process_time_ns()
+
     result = maximize_root(vertices_count, vertices_values, vertices_parents)
+
+    print(f"Execution time: {time.process_time_ns() - start_time}ns")
     solutions.append(result)
 
     print("Result:", result)
